@@ -5,6 +5,8 @@
 #include <unistd.h>  // for close()
 #include <errno.h>
 
+#define READ_SIZE 30
+
 /**
  * @retval  0 success
  * @retval -1 failure
@@ -12,10 +14,10 @@
 int32_t main(void)
 {
   FILE *fp;
-  int32_t rc, ret=0, fd;
+  int32_t ret=0, fd;
   u_int32_t rcu;
-  const u_int32_t read_size=30;
-  char buff[read_size+1];
+  const u_int32_t read_size=READ_SIZE;
+  char buff[READ_SIZE+1];
 
   const char* const file_name = "CMakeCache.txt";
   struct stat orig_st;
@@ -30,7 +32,7 @@ int32_t main(void)
    */
   if (0 != (fstat(fd, &orig_st)) || (!S_ISREG(orig_st.st_mode))){
     (void)fprintf(stderr, "Error: file {%s} is not a regular file!!", file_name);
-    if (-1 == (rc = close(fd))){
+    if (-1 == close(fd)){
       perror("perror close()");
       (void)fprintf(stderr, "close(%d), errno = %d\n", fd, errno);
     }
@@ -38,7 +40,7 @@ int32_t main(void)
   }
   if (NULL == (fp = fdopen(fd, "r"))) {
     perror("perror fdopen()");
-    if (-1 == (rc = close(fd))){
+    if (-1 == close(fd)){
       perror("perror close()");
       (void)fprintf(stderr, "close(%d), errno = %d\n", fd, errno);
     }

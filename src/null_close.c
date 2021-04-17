@@ -4,12 +4,18 @@
 #include <stdlib.h>
 #include <errno.h>
 
+#define READ_SIZE 30
+
+/**
+ * @retval  0 success
+ * @retval -1 failure
+ */
 int32_t main(void)
 {
   int32_t fd;
   int32_t rc=0;
-  const u_int32_t read_size=30;
-  char buff[read_size+1];
+  const u_int32_t read_size=READ_SIZE;
+  char buff[READ_SIZE+1];
 
   if (-1 == (fd = open("CMakeCache.txt", O_RDONLY))){
     perror("perror open()");
