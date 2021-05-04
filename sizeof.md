@@ -3,11 +3,13 @@
 ## 必要な背景知識
 
 - c言語
-- ポインタ、構造体
+- ポインタ
 
 ## 型とサイズ
 
-特に long、long long などは処理系で型のサイズが異なるため、sizeof() 関数で確認するためのコードを[こちら](./src/sizeof.c)に置いてある。
+処理系で型のサイズが異なる場合がある(特に long、long long など)ため、各型のサイズを確認するコードを[こちら](./src/sizeof.c)に置いてあります。
+
+構造体のサイズは、条件により変わるため[こちら](struct.md)をご参照下さい。
 
 以下は、
 
@@ -31,18 +33,20 @@ double           : 8
 long double      : 16
 
 int32_t array[9] : 36
-pointer          : 8
+pointer (ptr)    : 8
 int32_t *ptr     : 4
 void *void_ptr   : 1
-
-struct ci16i32   : 8
-struct i16i32c   : 12
 ```
 
-要点としては、
+## 配列のサイズ
 
-- スタック領域上の配列( int32_t array[9]; など)では sizeof(int32_t) x [配列のサイズ] = 4x9 = 36 となるのに対して、ヒープ領域に動的に割り当てた配列( int32_t \*ptr = (int32_t \*)calloc(9, sizeof(int32_t)); など)では __sizeof(ptr) は ptr のポインターのサイズ__、 __sizeof(\*ptr)はptrが指す値の型のサイズ(型がvoidの場合は1オクテット)__ となるため、注意が必要。
-- sizeof(構造体) については、その要素のサイズに応じてアライメントされるため、並びに応じてサイズが変わる場合がある。
+sizeof()の引数により異なるため注意が必要:
+
+- __スタック領域__ 上の配列( int32_t array[9]; など)では [配列の型のサイズ] x [配列のサイズ]
+  - 上記の例では、sizeof(array) = sizeof(int32_t) x [配列のサイズ] = 4x9 = 36。
+- __ヒープ領域__ に動的に割り当てた配列( int32_t \*ptr = (int32_t \*)calloc(9, sizeof(int32_t)); など)
+  - sizeof(ptr) は ptr のポインターのサイズ
+  - sizeof(\*ptr)はptrが指す値の型のサイズ(型がvoidの場合は1オクテット)
 
 ## サイズを考慮した型
 
