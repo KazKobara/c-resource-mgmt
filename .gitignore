@@ -52,6 +52,7 @@ Mkfile.old
 dkms.conf
 
 #
+src/trash/
 src/build/__*__
 src/build/CMake*
 src/build/*.log
