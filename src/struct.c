@@ -140,9 +140,9 @@ typedef struct {            // member_size = type_size * blocks [octet]
     double  f64;            // 8
     int32_t i32;            // 4
     char    str[STR_LEN];   // 1*5
-                            // 7 octet padding
+                            // 3 octet padding
     float   f32;            // 4
-                            // 15 octet padding
+                            // 8 octet padding
                             // 96 in total
 } struct___aligned_unpacked_untruncated_t ;
 
@@ -304,6 +304,7 @@ void garbage_in_struct(void)
 
     (void)printf("%p    org_struct\n\n", &org_struct);
     print_messy_struct(org_struct);
+    (void)printf("%p    org_struct : initialized but not zero-cleared\n", &org_struct);
     (void)buf_dump((const unsigned char*) &org_struct,  sizeof(org_struct));
     (void)printf("\n");
 
@@ -316,11 +317,19 @@ void garbage_in_struct(void)
     (void)buf_dump((const unsigned char*) &dest_struct, sizeof(dest_struct));
     (void)printf("\n");
 
-    /* Bad example: garbage of org_struct will be copied!! */
+    (void)printf("--- Bad example: garbage of org_struct will be copied!! ---\n\n");
     dest_struct = org_struct;
     (void)printf("%p    dest_struct = org_struct\n", &dest_struct);
     (void)buf_dump((const unsigned char*) &dest_struct, sizeof(dest_struct));
     (void)printf("\n");
+
+    (void)printf("--- One of the good examples for org_struct: zero-clear then initialize. ---\n\n");
+    memset(&org_struct, 0, sizeof(struct___aligned_unpacked_untruncated_t));
+    org_struct = (struct___aligned_unpacked_untruncated_t) {1,16.0,1,{8,8},2,8.0,4,"char",4.0};
+    (void)printf("%p    org_struct : zero-cleared then initialized\n", &org_struct);
+    (void)buf_dump((const unsigned char*) &org_struct, sizeof(org_struct));
+    (void)printf("\n");
+
 }
 
 

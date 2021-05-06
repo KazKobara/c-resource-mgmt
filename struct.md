@@ -42,9 +42,9 @@ typedef struct {        // member_size = type_size * blocks [octet]
     double  f64;        // 8
     int32_t i32;        // 4
     char    str[5];     // 1*5
-                        // 7 octet padding
+                        // 3 octet padding
     float   f32;        // 4
-                        // 15 octet padding
+                        // 8 octet padding
                         // 96 in total
 } struct___aligned_unpacked_untruncated_t ;
 ```
@@ -76,9 +76,10 @@ struct.f32    : 0x7ffc6c528154  4   8  0 4.000000
 
 Table 1 の `al` の列は、メモリアクセス時のパフォーマンスを上げるためにアライメントされるべきアドレス位置との差を表しており、`0`はそのようにアライメントされていることを意味する。なお、構造体要素の型サイズが 1 octet の場合にはアライメントは関係無いため `-` を表示させてあり、(bit field) b2 の位置はその前後要素の `address` の間のどこかにあるが bit 位置までは表示できないため `0x???...???` と表示してある。
 
-Table 1 の `pad` の列は、その次の要素をアライメントするためにその要素の後ろにできる隙間の octet 数を表している。構造体 `org_struct` のメモリをダンプすると、以下のように `pad` に対応する箇所（例えば、文字列"char\n"の後ろの 7 octets など）にゴミが入っており、[確認用コード](src/struct.c)を実行する度に異なる値が表示される。
+Table 1 の `pad` の列は、その次の要素をアライメントするためにその要素の後ろにできる隙間の octet 数を表している。構造体 `org_struct` のメモリをダンプすると、以下のように `pad` に対応する箇所（例えば、文字列"char\n"の後ろの 3 octets や最後の 8 octets など）にゴミが入っており、[確認用コード](src/struct.c)を実行する度に異なる値が表示される。
 
 ```text
+0x7ffc6c528100    org_struct : initialized but not zero-cleared
 A1 96 EB ED E8 7F 00 00 08 16 48 83 19 56 00 00   ..........H..V..
 00 00 00 00 00 00 00 80 03 40 EB ED E8 7F 00 00   .........@......
 01 00 00 00 00 00 00 00 08 00 00 00 00 00 00 00   ................
@@ -102,6 +103,8 @@ A1 96 EB ED E8 7F 00 00 08 16 48 83 19 56 00 00   ..........H..V..
 しかしながら、ゴミが入ったままの `org_struct` を `dest_struct = org_struct;` (や `memcpy()` など)で（外部から読み取り可能な）構造体 `dest_struct` にコピーしてしまうと、以下のとおりゴミもろともコピーされてしまう。
 
 ```text
+--- Bad example: garbage of org_struct will be copied!! ---
+
 0x7ffc6c5280a0    dest_struct = org_struct
 A1 96 EB ED E8 7F 00 00 08 16 48 83 19 56 00 00   ..........H..V..
 00 00 00 00 00 00 00 80 03 40 EB ED E8 7F 00 00   .........@......
@@ -111,10 +114,38 @@ A1 96 EB ED E8 7F 00 00 08 16 48 83 19 56 00 00   ..........H..V..
 00 04 48 83 00 00 80 40 80 81 52 6C FC 7F 00 00   ..H....@..Rl....
 ```
 
-対策の一つは前述のとおり、`dest_struct = org_struct;` (や `memcpy()` など)で全体をコピーするのではなく、
-（`dest_struct` の隙間は既にゼロクリアされているため）要素のみコピーするか、`org_struct` 全体をゼロクリアした後に必要な要素に値を入れてから、`dest_struct = org_struct;` などでコピーすることである。
+## 具体的な対策例
 
-なお、bit field には有効ではないが構造体中の padding を無くす（または、padding となる部分にダミーの要素を入れ初期化しておく）という方法もあるが、アライメントが崩れないように要素の配置順序にも配慮する必要がある。詳しくは以下で説明する。
+具体的な対策例としては、以下のような方法がある。
+
+- `dest_struct` をゼロクリアした後に、(`dest_struct = org_struct;` や `memcpy()` などで全体をコピーするのではなく)要素毎にコピーする。
+  - (なお、ゼロクリアしておらずゴミの入っている `dest_struct` に対しては、要素毎にコピーしてはならない。)
+- 以下のように `org_struct` 全体をゼロクリアした後に必要な要素に値を入れ、`dest_struct = org_struct;` などで全体をコピーする。
+
+    ```c
+    struct___aligned_unpacked_untruncated_t org_struct;
+
+    memset(&org_struct, 0, sizeof(struct___aligned_unpacked_untruncated_t));
+    org_struct = (struct___aligned_unpacked_untruncated_t) {1,16.0,1,{8,8},2,8.0,4,"char",4.0};
+    ```
+
+   これにより、`org_struct` の隙間のゴミもゼロクリアされていることが分かる。
+
+    ```text
+    --- One of the good examples for org_struct: zero-clear then initialize. ---
+    0x7ffc6c528100    org_struct : zero-cleared then initialized
+    01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00   ................
+    00 00 00 00 00 00 00 80 03 40 00 00 00 00 00 00   .........@......
+    01 00 00 00 00 00 00 00 08 00 00 00 00 00 00 00   ................
+    08 00 00 00 00 00 00 00 02 00 00 00 00 00 00 00   ................
+    00 00 00 00 00 00 20 40 04 00 00 00 63 68 61 72   ...... @....char
+    00 00 00 00 00 00 80 40 00 00 00 00 00 00 00 00   .......@........
+    ```
+
+- padding となる部分にダミーの要素を入れ初期化する。
+  - bit field を使っている場合には bit padding に対してもダミー要素を入れ初期化する。
+
+なお、bit field が使われている場合の bit padding に対しては有効ではないが、構造体中の octet 単位の padding を削除するという方法もある。しかしながら、アライメントが崩れないように要素の配置順序にも配慮する必要があるため、その詳細つにいては以下で説明する。
 
 ## 詰め物(padding)を削除すべきか整列(alignment)を保つべきか
 
