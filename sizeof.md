@@ -7,9 +7,9 @@
 
 ## 型とサイズ
 
-処理系で型のサイズが異なる場合がある(特に long、long long など)ため、各型のサイズを確認するコードを[こちら](./src/sizeof.c)に置いてあります。
+処理系で型のサイズが異なる場合(特に long、long long など)や値の範囲が変わる場合(char)があるため、各型のサイズと範囲を確認するコードを[こちら](./src/sizeof.c)に置いてあります。
 
-構造体のサイズは、条件により変わるため[こちら](struct.md)をご参照下さい。
+なお、構造体では要素の順序や pack を行うか否かなどにも依存して、そのサイズが変わるため、詳細につきましては[こちら](struct.md)をご参照下さい。
 
 以下は、
 
@@ -21,26 +21,52 @@ gcc (Ubuntu 9.3.0-17ubuntu1~20.04)
 の場合の例:
 
 ```text
-Type             : Size in Octets
-----------------------------------
-char             : 1
-short int        : 2
-int              : 4
-long int         : 8
-long long int    : 8
-float            : 4
-double           : 8
-long double      : 16
+         Type          :Size [octet]          MIN                  MAX Note
+----------------------------------------------------------------------------
+                   char:  1                  -128                  127 1
+            signed char:  1                  -128                  127
+          unsigned char:  1                     0                  255
 
-int32_t array[9] : 36
-pointer (ptr)    : 8
-int32_t *ptr     : 4
-void *void_ptr   : 1
+     (signed) short int:  2                -32768                32767
+     unsigned short int:  2                     0                65535
+           (signed) int:  4           -2147483648           2147483647
+           unsigned int:  4                     0           4294967295
+      (signed) long int:  8  -9223372036854775808  9223372036854775807
+      unsigned long int:  8                     0 18446744073709551615
+ (signed) long long int:  8  -9223372036854775808  9223372036854775807
+ unsigned long long int:  8                     0 18446744073709551615
+
+(IEEE754-2008 binary16):( 2)       0.000061035156                65504   3,4
+             (bfloat16):( 2)   1.175494350822e-38   3.389531389252e+38 2,3,4
+                  float:  4    1.175494350822e-38   3.402823466385e+38 2,3
+                 double:  8   2.225073858507e-308  1.797693134862e+308 2,3
+            long double: 16  3.362103143112e-4932 1.189731495357e+4932 2,3
+
+              pintptr_t:  8  -9223372036854775808  9223372036854775807
+             upintptr_t:  8                     0 18446744073709551615
+          pointer (ptr):  8
+          int32_t *ptr :  4
+        void *void_ptr :  1
+       int32_t array[9]: 36
+
+       (signed) ssize_t:  8
+      (unsigned) size_t:  8
+                 time_t:  8
+
+        struct timespec: 16
+
+Note:
+ 1. 'char' might be 'unsigned char' in some processing systems, though
+    types without 'signed' are the same as 'signed' ones in 'int' types.
+ 2. MIN and MAX here are rounded.
+ 3. MIN here is the minimum positive normal value and the smallest value
+    is given by -MAX.
+ 4. Will be updated after implemented in C.
 ```
 
 ## 配列のサイズ
 
-sizeof()の引数により異なるため注意が必要:
+sizeof()の引数に何を指定するかにより、得られるサイズが異なるため注意が必要:
 
 - __スタック領域__ 上の配列( int32_t array[9]; など)では [配列の型のサイズ] x [配列のサイズ]
   - 上記の例では、sizeof(array) = sizeof(int32_t) x [配列のサイズ] = 4x9 = 36。
