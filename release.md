@@ -35,7 +35,7 @@
   - 起動プロセスのそれは `cat /proc/${PID}/limits | grep "open file"` で確認できる。
   - プロセスが使用している df は `sudo ls -l /proc/${PID}/fd` で確認できる。
 - \*2: close(0)は標準入力を close するため、標準入力を close することを意図していないなら行ってはならない。
-- \*3: TOCTOU race condition 攻撃を避けるために open() 後に fdopen() を行う場合、if (NULL == fdopen()) の場合は、その時点で close() でファイルを閉じる。それ以外は、ファイル操作が不要になった時点で fclose() のみを実行しストリームとファイルの両方を閉じる。
+- \*3: TOCTOU race condition 攻撃を避けるために open() 後に fdopen() を行う場合、if (NULL == fdopen()) の場合は、その時点で close() でファイルを閉じる。それ以外は、ファイル操作が不要になった時点で fclose() のみを実行する（close()も自動的に実行される）。
   - fclose() と close() の両方を実行することは close() を2回実行することになるため不可。
 - \*4: close() の戻り値のチェックは行っておいた方がよい。特に write(2) が NFS やディスククォータが使用される環境において行われる場合。また、write(2)したデータが物理的に保存されることを保証する必要がある場合には fsync(2) も実行しておく([Linux Man Page CLOSE(3P)][LMP] [(和訳)][LMP-jp]より)
 
