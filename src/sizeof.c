@@ -3,6 +3,10 @@
  $ gcc -g -o sizeof sizeof.c
  $ ./sizeof
 
+ For MinGW
+ $ x86_64-w64-mingw32-gcc -g -o sizeof_x86_64_mingw.exe -Wall -DMINGW -D_ISOC99_SOURCE sizeof.c
+ $ i686-w64-mingw32-gcc -g -o sizeof_i686_mingw -Wall -DMINGW -DI686 -D_ISOC99_SOURCE  sizeof.c
+
  How to show the real type of the typedefed one, such as time_t.
  $ gdb ./sizeof
  (gdb) run
@@ -14,6 +18,7 @@
 #include <stdint.h>
 #include <limits.h>
 #include <float.h>
+#include <time.h>
 
 int32_t main(void)
 {
@@ -41,16 +46,28 @@ int32_t main(void)
     (void)printf(" unsigned long long int: %2zu %21d %20llu\n", sizeof(unsigned long long int),  0, ULLONG_MAX);
     (void)printf("\n");
     #define LOCAL_DEC_DIG 12
+#if !defined(MINGW)
     /* MIN and MAX of IEEE754-2008 binary16 are 2**−14 (subnormal 2**(-14-10)) and (2**10 − 1)*(2**−10)*(2**15), respectively. */
     (void)printf("(IEEE754-2008 binary16):(%2zu)%21.*f %20d   3,4\n", (size_t) 2, LOCAL_DEC_DIG, 0.00006103515625, 65504 );
     /* MIN and MAX of bfloat16 are 2**−126 (subnormal 2**(−126−7)) and (2**8 − 1)*(2**−7)*(2**127), respectively. */
     (void)printf("             (bfloat16):(%2zu)%21.*e %20.*e 2,3,4\n", (size_t) 2, LOCAL_DEC_DIG, 1.175494350822287507969e-38, LOCAL_DEC_DIG, 3.389531389251535475905e+38 );
+#endif
     (void)printf("                  float: %2zu %21.*e %20.*e 2,3\n",   sizeof(float),       LOCAL_DEC_DIG, FLT_MIN,  LOCAL_DEC_DIG, FLT_MAX);
     (void)printf("                 double: %2zu %21.*e %20.*e 2,3\n",   sizeof(double),      LOCAL_DEC_DIG, DBL_MIN,  LOCAL_DEC_DIG, DBL_MAX);
     (void)printf("            long double: %2zu %21.*Le %20.*Le 2,3\n", sizeof(long double), LOCAL_DEC_DIG, LDBL_MIN, LOCAL_DEC_DIG, LDBL_MAX);
     (void)printf("\n");
+#if defined(MINGW)
+#if defined(I686)
+    (void)printf("              pintptr_t: %2zu %21d %20d\n", sizeof(intptr_t), INTPTR_MIN, INTPTR_MAX);
+    (void)printf("             upintptr_t: %2zu %21d %20u\n", sizeof(intptr_t),           0, UINTPTR_MAX);
+#else  /* defined(I686) */
+    (void)printf("              pintptr_t: %2zu %21lld %20lld\n", sizeof(intptr_t), INTPTR_MIN, INTPTR_MAX);
+    (void)printf("             upintptr_t: %2zu %21d %20llu\n", sizeof(intptr_t),           0, UINTPTR_MAX);
+#endif /* defined(I686) */
+#else  /* defined(MINGW) */
     (void)printf("              pintptr_t: %2zu %21ld %20ld\n", sizeof(intptr_t), INTPTR_MIN, INTPTR_MAX);
     (void)printf("             upintptr_t: %2zu %21d %20lu\n", sizeof(intptr_t),           0, UINTPTR_MAX);
+#endif /* defined(MINGW) */
     (void)printf("          pointer (ptr): %2zu\n", sizeof(ptr));
     (void)printf("          int32_t *ptr : %2zu\n", sizeof(*ptr));
     (void)printf("        void *void_ptr : %2zu\n", sizeof(*void_ptr));
@@ -68,7 +85,9 @@ int32_t main(void)
     (void)printf(" 2. MIN and MAX here are rounded.\n");
     (void)printf(" 3. MIN here is the minimum positive normal value and the smallest value\n");
     (void)printf("    is given by -MAX.\n");
+#if !defined(MINGW)
     (void)printf(" 4. Will be updated after implemented in C.\n");
+#endif
     (void)printf("\n");
 
     free(ptr);

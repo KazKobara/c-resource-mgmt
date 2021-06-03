@@ -64,6 +64,88 @@ Note:
  4. Will be updated after implemented in C.
 ```
 
+```text
+gcc version 9.3-win32 20200320 (GCC)
+Target: i686-w64-mingw32
+```
+
+の場合の例:
+
+```text
+         Type          :Size [octet]          MIN                  MAX Note
+----------------------------------------------------------------------------
+                   char:  1                  -128                  127 1
+            signed char:  1                  -128                  127
+          unsigned char:  1                     0                  255
+
+     (signed) short int:  2                -32768                32767
+     unsigned short int:  2                     0                65535
+           (signed) int:  4           -2147483648           2147483647
+           unsigned int:  4                     0           4294967295
+      (signed) long int:  4           -2147483648           2147483647
+      unsigned long int:  4                     0           4294967295
+ (signed) long long int:  8  -9223372036854775808  9223372036854775807
+ unsigned long long int:  8                     0 18446744073709551615
+
+                  float:  4    1.175494350822e-38   3.402823466385e+38 2,3
+                 double:  8   2.225073858507e-308  1.797693134862e+308 2,3
+            long double: 12  3.362103143112e-4932 1.189731495357e+4932 2,3
+
+              pintptr_t:  4           -2147483648           2147483647
+             upintptr_t:  4                     0           4294967295
+          pointer (ptr):  4
+          int32_t *ptr :  4
+        void *void_ptr :  1
+       int32_t array[9]: 36
+
+       (signed) ssize_t:  4
+      (unsigned) size_t:  4
+                 time_t:  4
+
+        struct timespec:  8
+```
+
+```text
+gcc version 9.3-win32 20200320 (GCC)
+Target: x86_64-w64-mingw32
+```
+
+の場合の例:
+
+```text
+         Type          :Size [octet]          MIN                  MAX Note
+----------------------------------------------------------------------------
+                   char:  1                  -128                  127 1
+            signed char:  1                  -128                  127
+          unsigned char:  1                     0                  255
+
+     (signed) short int:  2                -32768                32767
+     unsigned short int:  2                     0                65535
+           (signed) int:  4           -2147483648           2147483647
+           unsigned int:  4                     0           4294967295
+      (signed) long int:  4           -2147483648           2147483647
+      unsigned long int:  4                     0           4294967295
+ (signed) long long int:  8  -9223372036854775808  9223372036854775807
+ unsigned long long int:  8                     0 18446744073709551615
+
+                  float:  4    1.175494350822e-38   3.402823466385e+38 2,3
+                 double:  8   2.225073858507e-308  1.797693134862e+308 2,3
+            long double: 16  3.362103143112e-4932 1.189731495357e+4932 2,3
+
+              pintptr_t:  8  -9223372036854775808  9223372036854775807
+             upintptr_t:  8                     0 18446744073709551615
+          pointer (ptr):  8
+          int32_t *ptr :  4
+        void *void_ptr :  1
+       int32_t array[9]: 36
+
+       (signed) ssize_t:  8
+      (unsigned) size_t:  8
+                 time_t:  8
+
+        struct timespec: 16
+```
+
 ## 配列のサイズ
 
 sizeof()の引数に何を指定するかにより、得られるサイズが異なるため注意が必要:
