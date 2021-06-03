@@ -1,8 +1,9 @@
 #include <unistd.h>
 #include <fcntl.h>
+#include <string.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 
 #define READ_SIZE 30
 
@@ -39,13 +40,13 @@ int32_t main(void)
   */
   if (-1 == (rc = close(fd))){
     perror("perror close()");
-    (void)fprintf(stderr, "close(%d), errno = %d\n", fd, errno);
     return -1;
   }
+  // fd = -1; should be added.
 
   Done:
-  /* Return code of close() should be checked. */
-  /* Second close() to check double close() */
+  /* Bad Example!! */
+  /* Second close() to check the behavior of double close() */
   /* if (-1 != fd) should be added. */
   if (-1 == (rc = close(fd))){
     perror("perror close()");

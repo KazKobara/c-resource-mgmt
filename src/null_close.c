@@ -37,7 +37,8 @@ int32_t main(void)
     return -1;
   }
 
-  /* close(0) shall be avoided unless it is intentional
+  /* Bad Example!! 
+    close(0) shall be avoided unless it is intentional
     since it closes standard input and does not cause any error at that point.
   */
   fd = 0;
